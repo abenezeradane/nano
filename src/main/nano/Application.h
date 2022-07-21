@@ -1,9 +1,15 @@
+#ifndef APPLICATION_H
+#define APPLICATION_H
+
 #include <SDL2/SDL.h>
+
+typedef enum {false, true} bool;
 
 typedef struct Application {
   SDL_Window* window;
   const char* title;
   int x, y, width, height;
+  bool quit;
   void (*step)(void);
   void (*load)(void);
 } Application;
@@ -22,3 +28,5 @@ void start(Application* app) {
   if (app && app -> load)
     app -> load();
 }
+
+#endif
