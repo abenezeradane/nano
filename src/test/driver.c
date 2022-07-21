@@ -1,9 +1,9 @@
 #include "nano/Application.h"
 #include "nano/Input.h"
 
+static float now;
+static float last;
 static float delta;
-static unsigned int now;
-static unsigned int last;
 
 static void load(void);
 static void frame(void);
@@ -18,12 +18,12 @@ int WinMain(int argc, char *argv[]) {
   app.quit = false;
   start(&app);
 
-  last = SDL_GetTicks();
+  last = time();
   while (!app.quit) {
     resetInput();
 
-    now = SDL_GetTicks();
-    delta = (float) (now - last);
+    now = time();
+    delta = now - last;
 
     if (delta > (1000 / app.fps)) {
       last = now;

@@ -28,4 +28,8 @@ void start(Application* app) {
     app -> load();
 }
 
+double time(void) {
+  return (double) SDL_GetTicks();
+}
+
 #endif
