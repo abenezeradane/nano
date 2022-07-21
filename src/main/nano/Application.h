@@ -6,11 +6,10 @@
 typedef enum {false, true} bool;
 
 typedef struct Application {
-  SDL_Window* window;
-  const char* title;
-  int x, y, width, height;
   bool quit;
-  void (*step)(void);
+  const char* title;
+  SDL_Window* window;
+  int x, y, width, height, fps;
   void (*load)(void);
 } Application;
 
