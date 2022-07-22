@@ -1,5 +1,6 @@
 #include "nano/Application.h"
 #include "nano/Input.h"
+#include "nano/Math.h"
 
 static float now;
 static float last;
@@ -10,7 +11,7 @@ static void frame(void);
 
 int WinMain(int argc, char *argv[]) {
   Application app = {0};
-  app.title = "Illusion";
+  app.title = "Sacrifice";
   app.fps = 60;
   app.width = 500;
   app.height = 400;
