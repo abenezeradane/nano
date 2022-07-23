@@ -19,6 +19,22 @@ int WinMain(int argc, char *argv[]) {
   app.quit = false;
   start(&app);
 
+  {
+    #include <stdio.h>
+    Vector a = {
+      .size = 2,
+      .array = {3, 4}
+    };
+
+    Vector b = {
+      .size = 2,
+      .array = {5, -1}
+    };
+
+    vadd(&a, &b);
+    printf("<%f, %f>\n", a.array[0], a.array[1]);
+  }
+
   last = time();
   while (!app.quit) {
     resetInput();
