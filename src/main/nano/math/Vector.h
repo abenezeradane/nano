@@ -8,14 +8,6 @@ typedef struct Vector {
   float array[4];
 } Vector;
 
-Vector vzero(short size) {
-  Vector v = {
-    .size = size,
-    .array = {0, 0, 0, 0}
-  };
-  return v;
-}
-
 void vadd(Vector* a, Vector* b) {
   if (a -> size == b -> size) {
     for (int itr = 0; itr < (a -> size); itr++)
