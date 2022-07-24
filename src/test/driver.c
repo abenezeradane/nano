@@ -41,6 +41,9 @@ int WINAPI WinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLin
 static void frame(void) {
   if (keypress(KEY_ESCAPE))
     quit(&app);
+
+  clear(0);
+  render(&app);
 }
 
 static void load(void) {
