@@ -18,8 +18,8 @@ int WinMain(int argc, char const *argv[]) {
 
   app.title = "Sacrifice";
   app.fps = 30;
-  app.width = 500;
-  app.height = 400;
+  app.width = 512;
+  app.height = 256;
   app.load = load;
   app.step = frame;
   app.quit = false;
@@ -53,13 +53,10 @@ static void frame(void) {
 }
 
 static void load(void) {
-  float triangle[] = {
-    1, 0, 0, 1, 0, 0,
-    0, 1, 0, 1, app.width, 0,
-    0, 0, 1, 1, app.width, app.height,
-
-    1, 0, 0, 1, 0, 0,
-    0, 0, 1, 1, app.width, app.height,
-    1, 1, 1, 1, 0, app.height
+  float test[] = {
+     (1.0f / 20),  ((float) (app.width / app.height) / 20), 0.0f,
+     (1.0f / 20), -((float) (app.width / app.height) / 20), 0.0f,
+    -(1.0f / 20), -((float) (app.width / app.height) / 20), 0.0f,
+    -(1.0f / 20),  ((float) (app.width / app.height) / 20), 0.0f
   };
 }
