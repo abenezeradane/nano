@@ -6,7 +6,8 @@
 #include <GL/glew.h>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_opengl.h>
-#include "util/Queue.h"
+#include "Math.h"
+#include "Utility.h"
 
 typedef enum bool {false, true} bool;
 typedef enum ShaderAttribute {vertexPosition, vertexColor} ShaderAttribute;
@@ -16,11 +17,12 @@ typedef struct Color {
 } Color;
 
 typedef struct Renderer {
-  GLuint vao, vbo;
+  GLuint vao, vbo, ebo;
   GLuint vs, fs, program;
   const char* vertex;
   const char* fragment;
   char* attributes[2];
+  Matrix* projection;
 } Renderer;
 
 typedef struct Application {
@@ -97,6 +99,21 @@ void start(Application* app) {
     glEnableVertexAttribArray(vertexPosition);
     glVertexAttribPointer(vertexColor, 4, GL_FLOAT, GL_FALSE, sizeof(float) * 6, 0);
     glVertexAttribPointer(vertexPosition, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 6, (void*) (4 * sizeof(float)));
+
+    const GLfloat g_vertex_buffer_data[] = {
+        1, 0, 0, 1, 0, 0,
+        0, 1, 0, 1, app -> width, 0,
+        0, 0, 1, 1, app -> width, app -> height,
+
+        1, 0, 0, 1, 0, 0,
+        0, 0, 1, 1, app -> width, app -> height,
+        1, 1, 1, 1, 0, app -> height
+    };
+
+    glBufferData(GL_ARRAY_BUFFER, sizeof( g_vertex_buffer_data ), g_vertex_buffer_data, GL_STATIC_DRAW);
+
+    const float* projection = morthographic(0.0f, app -> width, app -> height, 0.0f, 0.0f, 100.0f);
+    glUniformMatrix4fv(glGetUniformLocation(app -> renderer -> program, "Projection Matrix"), 1, GL_FALSE, projection);
   }
 
   if (app && app -> load)
@@ -113,6 +130,7 @@ void render(Application* app) {
   glBindVertexArray(app -> renderer -> vao);
   glDrawArrays(GL_TRIANGLES, 0, 6);
   SDL_GL_SwapWindow(app -> window);
+  SDL_Delay(1);
 }
 
 void resize(Application* app) {
@@ -124,6 +142,11 @@ void quit(Application* app) {
 }
 
 void close(Application* app) {
+  glDeleteVertexArrays(1, &(app -> renderer -> vao));
+  glDeleteBuffers(1, &(app -> renderer -> vbo));
+  glDeleteBuffers(1, &(app -> renderer -> ebo));
+  glDeleteProgram(app -> renderer -> program);
+
   SDL_GL_DeleteContext(app -> context);
   SDL_DestroyWindow(app -> window);
   SDL_Quit();

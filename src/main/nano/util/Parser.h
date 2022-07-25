@@ -1,10 +1,10 @@
-#ifndef UTILITY_H
-#define UTILITY_H
+#ifndef PARSER_H
+#define PARSER_H
 
 #define BUFFSIZE 1024
 #define MAXSIZE 1048576
 
-char* readfile(const char* filename) {
+char* loadshader(const char* filename) {
   FILE* file = fopen(filename, "r");
   if(file == NULL)
     return NULL;
@@ -17,13 +17,6 @@ char* readfile(const char* filename) {
     strcat(shader, buffer);
   free(buffer);
   fclose(file);
-
-  // if (strlen(shader) != MAXSIZE) {
-  //   char* temp = (char*) malloc(strlen(shader));
-  //   strcat(temp, shader);
-  //   free(shader);
-  //   return temp;
-  // }
 
   return shader;
 }
