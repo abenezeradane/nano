@@ -7,23 +7,11 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_opengl.h>
 #include "Math.h"
-#include "Utility.h"
-
-typedef enum bool {false, true} bool;
-typedef enum ShaderAttribute {vertexPosition, vertexColor} ShaderAttribute;
+#include "Renderer.h"
 
 typedef struct Color {
   GLfloat rgba[4];
 } Color;
-
-typedef struct Renderer {
-  unsigned int vao, vbo, ebo;
-  unsigned int vs, fs, program;
-  const char* vertex;
-  const char* fragment;
-  char* attributes[2];
-  float* projection;
-} Renderer;
 
 typedef struct Application {
   bool vsync, quit, fullscreen;
@@ -35,18 +23,6 @@ typedef struct Application {
   void (*step)(void);
   void (*load)(void);
 } Application;
-
-static float vertices[] = {
-     0.0625f,  0.0625f, 0.0f,
-     0.0625f, -0.0625f, 0.0f,
-    -0.0625f, -0.0625f, 0.0f,
-    -0.0625f,  0.0625f, 0.0f
-};
-
-static unsigned int indices[] = {
-  0, 1, 3,
-  1, 2, 3
-};
 
 double time(void) {
   return (double) SDL_GetTicks();
@@ -82,21 +58,6 @@ void start(Application* app) {
   glViewport(0, 0, app -> width ? app -> width : 800, app -> height ? app -> height : 600);
 
   if (app && app -> renderer) {
-    app -> renderer -> vs = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(app -> renderer -> vs, 1, &(app -> renderer -> vertex), NULL);
-    glCompileShader(app -> renderer -> vs);
-
-    app -> renderer -> fs = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(app -> renderer -> fs, 1, &(app -> renderer -> fragment), NULL);
-    glCompileShader(app -> renderer -> fs);
-
-    app -> renderer -> program = glCreateProgram();
-    glAttachShader(app -> renderer -> program, app -> renderer -> vs);
-    glAttachShader(app -> renderer -> program, app -> renderer -> fs);
-    glLinkProgram(app -> renderer -> program);
-    glDeleteShader(app -> renderer -> vs);
-    glDeleteShader(app -> renderer -> fs);
-
     glGenVertexArrays(1, &(app -> renderer -> vao));
     glGenBuffers(1, &(app -> renderer -> vbo));
     glGenBuffers(1, &(app -> renderer -> ebo));
@@ -119,9 +80,6 @@ void start(Application* app) {
     glEnableVertexAttribArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
-
-    const float* projection = morthographic(0.0f, app -> width, app -> height, 0.0f, 0.0f, 100.0f);
-    glUniformMatrix4fv(glGetUniformLocation(app -> renderer -> program, "Projection Matrix"), 1, GL_FALSE, projection);
   }
 
   if (app && app -> load)
@@ -135,9 +93,11 @@ void clear(Color* color) {
 }
 
 void render(Application* app) {
-  glUseProgram(app -> renderer -> program);
-  glBindVertexArray(app -> renderer -> vao);
-  glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+  for (int itr = 0; itr < (app -> renderer -> count); itr++) {
+    glUseProgram((app -> renderer -> shaders)[itr]);
+    glBindVertexArray(app -> renderer -> vao);
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+  }
   SDL_GL_SwapWindow(app -> window);
   SDL_Delay(1);
 }
@@ -154,7 +114,8 @@ void close(Application* app) {
   glDeleteVertexArrays(1, &(app -> renderer -> vao));
   glDeleteBuffers(1, &(app -> renderer -> vbo));
   glDeleteBuffers(1, &(app -> renderer -> ebo));
-  glDeleteProgram(app -> renderer -> program);
+  for (int itr = 0; itr < (app -> renderer -> count); itr++)
+    glDeleteProgram((app -> renderer -> shaders)[itr]);
 
   SDL_GL_DeleteContext(app -> context);
   SDL_DestroyWindow(app -> window);
