@@ -21,4 +21,8 @@ char* loadshader(const char* filename) {
   return shader;
 }
 
+char* loadtexture(const char* filename) {
+  return NULL;
+}
+
 #endif

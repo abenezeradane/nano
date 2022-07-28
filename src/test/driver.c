@@ -9,8 +9,9 @@ static float delta;
 static void load(void);
 static void frame(void);
 
-static Application app = {0};
-static Renderer renderer = {0};
+static Application app;
+static Renderer renderer;
+static ECS ecs;
 int WinMain(int argc, char const *argv[]) {
   app.title = "Sacrifice";
   app.fps = 30;
@@ -19,8 +20,14 @@ int WinMain(int argc, char const *argv[]) {
   app.load = load;
   app.step = frame;
   app.quit = false;
+
   renderer.projection = morthographic(0.0f, app.width, app.height, 0.0f, 0.0f, 100.0f);
   app.renderer = &renderer;
+
+  ecs.entities = entitymanager();
+  ecs.components = componentmanager();
+  app.ecs = &ecs;
+
   start(&app);
 
   last = time();
@@ -51,10 +58,17 @@ static void frame(void) {
 
 static void load(void) {
   createshader(&renderer, "test.vert", "test.frag");
-  // float test[] = {
-  //    (1.0f / 20),  ((float) (app.width / app.height) / 20), 0.0f,
-  //    (1.0f / 20), -((float) (app.width / app.height) / 20), 0.0f,
-  //   -(1.0f / 20), -((float) (app.width / app.height) / 20), 0.0f,
-  //   -(1.0f / 20),  ((float) (app.width / app.height) / 20), 0.0f
-  // };
+
+  {
+    #include <stdio.h>
+    Entity test = newentity(&ecs);
+    Component testposition = newcomponent(POSITION);
+    float* position = getposition(&testposition);
+    printf("Unassigned Position: (%.2f, %.2f)\n", position[0], position[1]);
+    assigncomponent(&ecs, testposition, test);
+    Component get = getcomponent(&ecs, test, POSITION);
+    setposition(&get, 1.0f, 1.0f);
+    position = getposition(&get);
+    printf("Unassigned Position: (%.2f, %.2f)\n", position[0], position[1]);
+  }
 }

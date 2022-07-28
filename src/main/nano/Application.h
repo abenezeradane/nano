@@ -6,6 +6,8 @@
 #include <GL/glew.h>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_opengl.h>
+
+#include "ECS.h"
 #include "Math.h"
 #include "Renderer.h"
 
@@ -19,6 +21,7 @@ typedef struct Application {
   SDL_Window* window;
   SDL_GLContext context;
   Renderer* renderer;
+  ECS* ecs;
   int x, y, width, height, fps, flags;
   void (*step)(void);
   void (*load)(void);
@@ -57,29 +60,31 @@ void start(Application* app) {
   glDisable(GL_DEPTH_TEST);
   glViewport(0, 0, app -> width ? app -> width : 800, app -> height ? app -> height : 600);
 
+  float vertices[] = {
+     0.5f, -0.5f, 0.0f,  1.0f, 0.0f, 0.0f,
+    -0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,
+     0.0f,  0.5f, 0.0f,  0.0f, 0.0f, 1.0f
+  };
+
+  // float vertices[] = {
+  //    (1.0f / 20),  ((float) (app -> width / app -> height) / 20), 0.0f,   1.0f, 0.0f, 0.0f,
+  //    (1.0f / 20), -((float) (app -> width / app -> height) / 20), 0.0f,   0.0f, 1.0f, 0.0f,
+  //   -(1.0f / 20), -((float) (app -> width / app -> height) / 20), 0.0f,   0.0f, 0.0f, 1.0f,
+  //   -(1.0f / 20),  ((float) (app -> width / app -> height) / 20), 0.0f,   1.0f, 1.0f, 0.0f
+  // };
+
   if (app && app -> renderer) {
     glGenVertexArrays(1, &(app -> renderer -> vao));
     glGenBuffers(1, &(app -> renderer -> vbo));
-    glGenBuffers(1, &(app -> renderer -> ebo));
+
     glBindVertexArray(app -> renderer -> vao);
-
-    float test[] = {
-       (1.0f / 20),  ((float) (app -> width / app -> height) / 20), 0.0f,
-       (1.0f / 20), -((float) (app -> width / app -> height) / 20), 0.0f,
-      -(1.0f / 20), -((float) (app -> width / app -> height) / 20), 0.0f,
-      -(1.0f / 20),  ((float) (app -> width / app -> height) / 20), 0.0f
-    };
-
     glBindBuffer(GL_ARRAY_BUFFER, app -> renderer -> vbo);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(test), test, GL_DYNAMIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, app -> renderer -> ebo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_DYNAMIC_DRAW);
-
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*) 0);
     glEnableVertexAttribArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*) (3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
   }
 
   if (app && app -> load)
@@ -93,10 +98,10 @@ void clear(Color* color) {
 }
 
 void render(Application* app) {
-  for (int itr = 0; itr < (app -> renderer -> count); itr++) {
+  for (int itr = 0; itr < (app -> renderer -> shadercount); itr++) {
     glUseProgram((app -> renderer -> shaders)[itr]);
     glBindVertexArray(app -> renderer -> vao);
-    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+    glDrawArrays(GL_TRIANGLES, 0, 3);
   }
   SDL_GL_SwapWindow(app -> window);
   SDL_Delay(1);
@@ -113,8 +118,7 @@ void quit(Application* app) {
 void close(Application* app) {
   glDeleteVertexArrays(1, &(app -> renderer -> vao));
   glDeleteBuffers(1, &(app -> renderer -> vbo));
-  glDeleteBuffers(1, &(app -> renderer -> ebo));
-  for (int itr = 0; itr < (app -> renderer -> count); itr++)
+  for (int itr = 0; itr < (app -> renderer -> shadercount); itr++)
     glDeleteProgram((app -> renderer -> shaders)[itr]);
 
   SDL_GL_DeleteContext(app -> context);

@@ -5,8 +5,20 @@
 
 typedef struct Vector {
   short size;
-  float array[4];
+  float* array;
 } Vector;
+
+Vector vector(int size) {
+  Vector v = {
+    .size = size,
+    .array = (float*) malloc(sizeof(float) * size)
+  };
+
+  for (int itr = 0; itr < size; itr++)
+    (v.array)[itr] = 0.0f;
+
+  return v;
+}
 
 void vadd(Vector* a, Vector* b) {
   if (a -> size == b -> size) {
@@ -48,13 +60,13 @@ float vdot(Vector* a, Vector* b) {
 
 Vector vcross(Vector* a, Vector* b) {
   Vector v = {
-    .size = 4,
-    .array = {
-      ((a -> array)[1] * (b -> array)[2]) - ((b -> array)[1] * (a -> array)[2]),
-      ((a -> array)[0] * (b -> array)[2]) - ((b -> array)[0] * (a -> array)[2]),
-      ((a -> array)[0] * (b -> array)[1]) - ((b -> array)[0] * (a -> array)[1]),
-    }
+    .size = 3,
+    .array = (float*) malloc(sizeof(float) * 3)
   };
+
+  (v.array)[0] = ((a -> array)[1] * (b -> array)[2]) - ((b -> array)[1] * (a -> array)[2]);
+  (v.array)[1] = ((a -> array)[0] * (b -> array)[2]) - ((b -> array)[0] * (a -> array)[2]);
+  (v.array)[2] = ((a -> array)[0] * (b -> array)[1]) - ((b -> array)[0] * (a -> array)[1]);
   return v;
 }
 
