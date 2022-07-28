@@ -44,7 +44,7 @@ int WinMain(int argc, char const *argv[]) {
     }
   }
 
-  shutdown(&app);
+  close(&app);
   return 0;
 }
 
@@ -69,12 +69,14 @@ static void frame(void) {
 
 static void load(void) {
   Entity player = newentity(&ecs);
+  Component playerposition = newcomponent(POSITION, NULL);
   SPRITEDATA* data = (SPRITEDATA*) malloc(sizeof(SPRITEDATA));
-  data -> vertexfile = "text.vert";
-  data -> fragmentfile = "text.frag";
+  data -> vertexfile = "test.vert";
+  data -> fragmentfile = "test.frag";
+  data -> texturefile = "test.png";
+  data -> width = app.width;
+  data -> height = app.height;
   Component playersprite = newcomponent(SPRITE, data);
   assigncomponent(&ecs, playersprite, player);
   free(data);
-
-  // createshader(&renderer, "test.vert", "test.frag");
 }

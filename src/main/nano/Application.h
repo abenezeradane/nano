@@ -56,30 +56,6 @@ void start(Application* app) {
   glDisable(GL_DEPTH_TEST);
   glViewport(0, 0, app -> width ? app -> width : 800, app -> height ? app -> height : 600);
 
-  if (app && app -> renderer) {
-    glGenVertexArrays(1, &(app -> renderer -> vao));
-    glGenBuffers(1, &(app -> renderer -> vbo));
-    glGenBuffers(1, &(app -> renderer -> ebo));
-
-    glBindVertexArray(app -> renderer -> vao);
-
-    glBindBuffer(GL_ARRAY_BUFFER, app -> renderer -> vbo);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, app -> renderer -> ebo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*) 0);
-    glEnableVertexAttribArray(0);
-
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*) (3 * sizeof(float)));
-    glEnableVertexAttribArray(1);
-
-    // glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*) (6 * sizeof(float)));
-    // glEnableVertexAttribArray(2);
-  } else
-    exit(-1);
-
   if (app && app -> load)
     app -> load();
 }
@@ -95,11 +71,9 @@ void render(Application* app) {
     if (sprite == NULL)
       continue;
 
-    // glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-    // glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-
+    glBindTexture(GL_TEXTURE_2D, sprite -> texture);
     glUseProgram(sprite -> shader);
-    glBindVertexArray(app -> renderer -> vao);
+    glBindVertexArray(sprite -> vao);
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
   }
 
@@ -111,15 +85,17 @@ void quit(Application* app) {
   app -> quit = true;
 }
 
-void shutdown(Application* app) {
-  glDeleteVertexArrays(1, &(app -> renderer -> vao));
-  glDeleteBuffers(1, &(app -> renderer -> vbo));
-  // for (int entity = 0; entity < ((app -> ecs -> entities).livingcount); entity++) {
-  //   Sprite* sprite = getcomponent(app -> ecs, entity, SPRITE).component;
-  //   if (sprite == NULL)
-  //     continue;
-  //   glDeleteProgram(sprite -> shader);
-  // }
+void close(Application* app) {
+  for (int entity = 0; entity < ((app -> ecs -> entities).livingcount); entity++) {
+    Component component = getcomponent(app -> ecs, entity, SPRITE);
+    Sprite* sprite = getsprite(&component);
+    if (sprite == NULL)
+      continue;
+
+    glDeleteVertexArrays(1, &(sprite -> vao));
+    glDeleteBuffers(1, &(sprite -> vbo));
+    glDeleteProgram(sprite -> shader);
+  }
 
   SDL_GL_DeleteContext(app -> context);
   SDL_DestroyWindow(app -> window);

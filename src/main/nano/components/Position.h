@@ -7,10 +7,10 @@ typedef struct Position {
   float x, y;
 } Position;
 
-Position* positioncomponent(void) {
+Position* positioncomponent(float data[2]) {
   Position* position = (Position*) malloc(sizeof(Position));
-  position -> x = 0;
-  position -> y = 0;
+  position -> x = (data != NULL) ? data[0] : 0;
+  position -> y = (data != NULL) ? data[1] : 0;
 
   return position;
 }

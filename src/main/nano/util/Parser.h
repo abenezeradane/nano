@@ -4,7 +4,7 @@
 #define BUFFSIZE 1024
 #define MAXSIZE 1048576
 
-char* loadshader(const char* filename) {
+char* loadshader(char* filename) {
   FILE* file = fopen(filename, "r");
   if (!file)
     return NULL;
@@ -20,7 +20,7 @@ char* loadshader(const char* filename) {
   return shader;
 }
 
-char* loadtexture(const char* filename) {
+char* loadtexture(char* filename) {
   FILE* file = fopen(filename, "r");
   if (!file)
     return NULL;

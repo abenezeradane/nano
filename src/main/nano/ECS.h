@@ -17,7 +17,6 @@ typedef struct COMPONENTMANAGER {
 typedef struct ECS {
   ENTITYMANAGER entities;
   COMPONENTMANAGER components;
-  ComponentType typecount[sizeof(ComponentType)];
 } ECS;
 
 ENTITYMANAGER entitymanager(void) {
@@ -63,7 +62,7 @@ Component newcomponent(ComponentType type, void* data) {
 
   switch (type) {
     case POSITION:
-      component.component = positioncomponent();
+      component.component = positioncomponent(data);
       break;
 
     case VELOCITY:
@@ -103,7 +102,6 @@ void assigncomponent(ECS* ecs, Component component, Entity entity) {
 
   (ecs -> components).available[entity][component.ID] = component;
   (ecs -> components).livingcount[entity]++;
-  (ecs -> typecount)[component.ID]++;
 }
 
 #endif
