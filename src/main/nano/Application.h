@@ -11,10 +11,6 @@
 #include "Math.h"
 #include "Renderer.h"
 
-typedef struct Color {
-  GLfloat rgba[4];
-} Color;
-
 typedef struct Application {
   bool vsync, quit, fullscreen;
   const char* title;
@@ -60,66 +56,70 @@ void start(Application* app) {
   glDisable(GL_DEPTH_TEST);
   glViewport(0, 0, app -> width ? app -> width : 800, app -> height ? app -> height : 600);
 
-  float vertices[] = {
-     0.5f, -0.5f, 0.0f,  1.0f, 0.0f, 0.0f,
-    -0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,
-     0.0f,  0.5f, 0.0f,  0.0f, 0.0f, 1.0f
-  };
-
-  // float vertices[] = {
-  //    (1.0f / 20),  ((float) (app -> width / app -> height) / 20), 0.0f,   1.0f, 0.0f, 0.0f,
-  //    (1.0f / 20), -((float) (app -> width / app -> height) / 20), 0.0f,   0.0f, 1.0f, 0.0f,
-  //   -(1.0f / 20), -((float) (app -> width / app -> height) / 20), 0.0f,   0.0f, 0.0f, 1.0f,
-  //   -(1.0f / 20),  ((float) (app -> width / app -> height) / 20), 0.0f,   1.0f, 1.0f, 0.0f
-  // };
-
   if (app && app -> renderer) {
     glGenVertexArrays(1, &(app -> renderer -> vao));
     glGenBuffers(1, &(app -> renderer -> vbo));
+    glGenBuffers(1, &(app -> renderer -> ebo));
 
     glBindVertexArray(app -> renderer -> vao);
+
     glBindBuffer(GL_ARRAY_BUFFER, app -> renderer -> vbo);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*) 0);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, app -> renderer -> ebo);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*) 0);
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*) (3 * sizeof(float)));
+
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*) (3 * sizeof(float)));
     glEnableVertexAttribArray(1);
-  }
+
+    // glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*) (6 * sizeof(float)));
+    // glEnableVertexAttribArray(2);
+  } else
+    exit(-1);
 
   if (app && app -> load)
     app -> load();
-}
-
-void clear(Color* color) {
-  if (color)
-    glClearColor((color -> rgba)[0], (color -> rgba)[1], (color -> rgba)[2], (color -> rgba)[3]);
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-}
-
-void render(Application* app) {
-  for (int itr = 0; itr < (app -> renderer -> shadercount); itr++) {
-    glUseProgram((app -> renderer -> shaders)[itr]);
-    glBindVertexArray(app -> renderer -> vao);
-    glDrawArrays(GL_TRIANGLES, 0, 3);
-  }
-  SDL_GL_SwapWindow(app -> window);
-  SDL_Delay(1);
 }
 
 void resize(Application* app) {
 
 }
 
+void render(Application* app) {
+  for (int entity = 0; entity < ((app -> ecs -> entities).livingcount); entity++) {
+    Component component = getcomponent(app -> ecs, entity, SPRITE);
+    Sprite* sprite = getsprite(&component);
+    if (sprite == NULL)
+      continue;
+
+    // glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+    // glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+
+    glUseProgram(sprite -> shader);
+    glBindVertexArray(app -> renderer -> vao);
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+  }
+
+  SDL_GL_SwapWindow(app -> window);
+  SDL_Delay(1);
+}
+
 void quit(Application* app) {
   app -> quit = true;
 }
 
-void close(Application* app) {
+void shutdown(Application* app) {
   glDeleteVertexArrays(1, &(app -> renderer -> vao));
   glDeleteBuffers(1, &(app -> renderer -> vbo));
-  for (int itr = 0; itr < (app -> renderer -> shadercount); itr++)
-    glDeleteProgram((app -> renderer -> shaders)[itr]);
+  // for (int entity = 0; entity < ((app -> ecs -> entities).livingcount); entity++) {
+  //   Sprite* sprite = getcomponent(app -> ecs, entity, SPRITE).component;
+  //   if (sprite == NULL)
+  //     continue;
+  //   glDeleteProgram(sprite -> shader);
+  // }
 
   SDL_GL_DeleteContext(app -> context);
   SDL_DestroyWindow(app -> window);

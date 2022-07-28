@@ -17,6 +17,7 @@ typedef struct COMPONENTMANAGER {
 typedef struct ECS {
   ENTITYMANAGER entities;
   COMPONENTMANAGER components;
+  ComponentType typecount[sizeof(ComponentType)];
 } ECS;
 
 ENTITYMANAGER entitymanager(void) {
@@ -55,7 +56,7 @@ COMPONENTMANAGER componentmanager(void) {
   return manager;
 }
 
-Component newcomponent(ComponentType type) {
+Component newcomponent(ComponentType type, void* data) {
   Component component = {
     .ID = type,
   };
@@ -70,7 +71,7 @@ Component newcomponent(ComponentType type) {
       break;
 
     case SPRITE:
-      component.component = (Sprite*) malloc(sizeof(Sprite));
+      component.component = spritecomponent(data);
       break;
 
     case HEALTH:
@@ -92,7 +93,8 @@ Component getcomponent(ECS* ecs, Entity entity, ComponentType type) {
   if (!(ecs && (ecs -> entities).livingcount < MAX_ENTITIES))
     return;
 
-  return (ecs -> components).available[entity - 1][type];
+  return (ecs -> components).available[entity][type];
+  return;
 }
 
 void assigncomponent(ECS* ecs, Component component, Entity entity) {
@@ -101,6 +103,7 @@ void assigncomponent(ECS* ecs, Component component, Entity entity) {
 
   (ecs -> components).available[entity][component.ID] = component;
   (ecs -> components).livingcount[entity]++;
+  (ecs -> typecount)[component.ID]++;
 }
 
 #endif

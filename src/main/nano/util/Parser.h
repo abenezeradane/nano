@@ -6,22 +6,25 @@
 
 char* loadshader(const char* filename) {
   FILE* file = fopen(filename, "r");
-  if(file == NULL)
+  if (!file)
     return NULL;
 
   int flag = 0;
   char* shader = (char*) malloc(MAXSIZE);
-
   char* buffer = (char*) malloc(BUFFSIZE);
   while (fgets(buffer, BUFFSIZE, file) != NULL)
     strcat(shader, buffer);
+
   free(buffer);
   fclose(file);
-
   return shader;
 }
 
 char* loadtexture(const char* filename) {
+  FILE* file = fopen(filename, "r");
+  if (!file)
+    return NULL;
+
   return NULL;
 }
 

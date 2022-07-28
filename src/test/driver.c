@@ -44,7 +44,7 @@ int WinMain(int argc, char const *argv[]) {
     }
   }
 
-  close(&app);
+  shutdown(&app);
   return 0;
 }
 
@@ -52,23 +52,29 @@ static void frame(void) {
   if (keypress(KEY_ESCAPE))
     quit(&app);
 
+  {
+    if (keypress(KEY_W))
+      printf("W");
+    if (keypress(KEY_A))
+      printf("A");
+    if (keypress(KEY_S))
+      printf("S");
+    if (keypress(KEY_D))
+      printf("D");
+  }
+
   clear(0);
   render(&app);
 }
 
 static void load(void) {
-  createshader(&renderer, "test.vert", "test.frag");
+  Entity player = newentity(&ecs);
+  SPRITEDATA* data = (SPRITEDATA*) malloc(sizeof(SPRITEDATA));
+  data -> vertexfile = "text.vert";
+  data -> fragmentfile = "text.frag";
+  Component playersprite = newcomponent(SPRITE, data);
+  assigncomponent(&ecs, playersprite, player);
+  free(data);
 
-  {
-    #include <stdio.h>
-    Entity test = newentity(&ecs);
-    Component testposition = newcomponent(POSITION);
-    float* position = getposition(&testposition);
-    printf("Unassigned Position: (%.2f, %.2f)\n", position[0], position[1]);
-    assigncomponent(&ecs, testposition, test);
-    Component get = getcomponent(&ecs, test, POSITION);
-    setposition(&get, 1.0f, 1.0f);
-    position = getposition(&get);
-    printf("Unassigned Position: (%.2f, %.2f)\n", position[0], position[1]);
-  }
+  // createshader(&renderer, "test.vert", "test.frag");
 }

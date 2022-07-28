@@ -1,59 +1,61 @@
-#ifndef SHADER_H
-#define SHADER_H
+#ifndef RENDERER_H
+#define RENDERER_H
 
 #define GLEW_STATIC
 #define NO_SDL_GLEXT
 #include <GL/glew.h>
 #include <SDL2/SDL_opengl.h>
 #include "ECS.h"
-#include "Utility.h"
+
+typedef struct Color {
+  GLfloat rgba[4];
+} Color;
 
 typedef struct Renderer {
   unsigned int vao, vbo, ebo;
-  unsigned short shadercount;
-  Shader shaders[512];
   float* projection;
 } Renderer;
+
+float vertices[] = {
+   0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,
+   0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,
+  -0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f,
+  -0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f
+};
 
 unsigned int indices[] = {
   0, 1, 3,
   1, 2, 3
 };
 
-Shader createshader(Renderer* renderer, char* vertexfile, char* fragmentfile) {
-  const char* vertexcode = loadshader(vertexfile);
-  unsigned int vertex = glCreateShader(GL_VERTEX_SHADER);
-  glShaderSource(vertex, 1, &vertexcode, NULL);
-  glCompileShader(vertex);
-
-  const char* fragmentcode = loadshader(fragmentfile);
-  unsigned int fragment = glCreateShader(GL_FRAGMENT_SHADER);
-  glShaderSource(fragment, 1, &fragmentcode, NULL);
-  glCompileShader(fragment);
-
-  Shader shader = glCreateProgram();
-  glAttachShader(shader, vertex);
-  glAttachShader(shader, fragment);
-  glLinkProgram(shader);
-
-  glDeleteShader(vertex);
-  glDeleteShader(fragment);
-  free((void*) vertexcode);
-  free((void*) fragmentcode);
-
-  (renderer -> shaders)[(renderer -> shadercount)++] = shader;
+void clear(Color* color) {
+  if (color)
+    glClearColor((color -> rgba)[0], (color -> rgba)[1], (color -> rgba)[2], (color -> rgba)[3]);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
-void setshaderbool(Shader shader, char* attribute, bool value) {
-   glUniform1i(glGetUniformLocation(shader, attribute), value);
-}
-
-void setshaderint(Shader shader, char* attribute, int value) {
-   glUniform1i(glGetUniformLocation(shader, attribute), value);
-}
-
-void setshaderfloat(Shader shader, char* attribute, float value) {
-   glUniform1i(glGetUniformLocation(shader, attribute), value);
-}
+// void createshader(Renderer* renderer, char* vertexfile, char* fragmentfile) {
+//   const char* vertexcode = loadshader(vertexfile);
+//   unsigned int vertex = glCreateShader(GL_VERTEX_SHADER);
+//   glShaderSource(vertex, 1, &vertexcode, NULL);
+//   glCompileShader(vertex);
+//
+//   const char* fragmentcode = loadshader(fragmentfile);
+//   unsigned int fragment = glCreateShader(GL_FRAGMENT_SHADER);
+//   glShaderSource(fragment, 1, &fragmentcode, NULL);
+//   glCompileShader(fragment);
+//
+//   Shader shader = glCreateProgram();
+//   glAttachShader(shader, vertex);
+//   glAttachShader(shader, fragment);
+//   glLinkProgram(shader);
+//
+//   glDeleteShader(vertex);
+//   glDeleteShader(fragment);
+//   free((void*) vertexcode);
+//   free((void*) fragmentcode);
+//
+//   (renderer -> shaders)[(renderer -> shadercount)++] = shader;
+// }
 
 #endif
