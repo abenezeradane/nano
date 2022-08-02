@@ -1,30 +1,30 @@
 #ifndef QUEUE_H
 #define QUEUE_H
 
-#define NULL_ITEM 65535
+#define NULL_ITEM 65536
 
 typedef struct Queue {
-  unsigned short front, rear, size;
-  unsigned short capacity;
-  unsigned short* array;
+  unsigned int front, rear, size;
+  unsigned int capacity;
+  unsigned int* array;
 } Queue;
 
-Queue* queue(unsigned short capacity) {
+Queue* queue(unsigned int capacity) {
   Queue* queue = (Queue*) malloc(sizeof(Queue));
   queue -> capacity = capacity;
   queue -> front = queue -> size = 0;
 
   queue -> rear = capacity - 1;
-  queue -> array = (unsigned short*) malloc((queue -> capacity) * sizeof(unsigned short));
+  queue -> array = (unsigned int*) calloc(queue -> capacity, sizeof(unsigned int));
   return queue;
 }
 
-unsigned short isFull(Queue* queue) {return ((queue -> size) == (queue -> capacity));}
-unsigned short isEmpty(Queue* queue) {return queue -> size == 0;}
-unsigned short front(Queue* queue) {return isEmpty(queue) ? NULL_ITEM : (queue -> array)[queue -> front];}
-unsigned short rear(Queue* queue) {return isEmpty(queue) ? NULL_ITEM : (queue -> array)[queue -> rear];}
+unsigned int isFull(Queue* queue) {return ((queue -> size) == (queue -> capacity));}
+unsigned int isEmpty(Queue* queue) {return queue -> size == 0;}
+unsigned int front(Queue* queue) {return isEmpty(queue) ? NULL_ITEM : (queue -> array)[queue -> front];}
+unsigned int rear(Queue* queue) {return isEmpty(queue) ? NULL_ITEM : (queue -> array)[queue -> rear];}
 
-void enqueue(Queue* queue, unsigned short item) {
+void enqueue(Queue* queue, unsigned int item) {
   if(isFull(queue))
     return;
 
