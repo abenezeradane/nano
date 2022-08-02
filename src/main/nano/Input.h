@@ -2,6 +2,7 @@
 #define INPUT_H
 
 #include "Application.h"
+#include "Miscellaneous.h"
 
 enum {
   KEY_UNKNOWN,
@@ -20,23 +21,23 @@ enum {
 
   KEY_ESCAPE, KEY_RETURN, KEY_LCTRL, KEY_LALT,
   KEY_LEFT, KEY_RIGHT, KEY_UP, KEY_DOWN,
-  KEY_LSHIFT,
+  KEY_LSHIFT, KEY_SPACE,
 
   KEY_MAX
 };
 
-static bool KEY_DELTA[KEY_MAX];
-static bool KEY_PRESSED[KEY_MAX];
+static Boolean KEY_DELTA[KEY_MAX];
+static Boolean KEY_PRESSED[KEY_MAX];
 
-bool keydown(int key) {
+Boolean keydown(int key) {
   return KEY_PRESSED[key];
 }
 
-bool keypress(int key) {
+Boolean keypress(int key) {
   return KEY_PRESSED[key] && KEY_DELTA[key];
 }
 
-bool keyrelease(int key) {
+Boolean keyrelease(int key) {
   return !KEY_PRESSED[key] && KEY_DELTA[key];
 }
 
@@ -44,21 +45,21 @@ static void resetInput(void) {
   memset(KEY_DELTA, 0, sizeof(KEY_DELTA));
 }
 
-static void on_keypress(int key) {
+static void onKeypress(int key) {
   if (key) {
     KEY_PRESSED[key] = true;
     KEY_DELTA[key] = true;
   }
 }
 
-static void on_keyrelease(int key) {
+static void onKeyrelease(int key) {
   if (key) {
     KEY_PRESSED[key] = false;
     KEY_DELTA[key] = true;
   }
 }
 
-int translate_key(int key) {
+int translateKey(int key) {
   if (key >= 0x61 && key <= 0x7A) return key - 0x61 + KEY_A;
   if (key >= 0x30 && key <= 0x39) return key - 0x30 + KEY_A;
 
@@ -70,19 +71,20 @@ int translate_key(int key) {
     case SDLK_UP: return KEY_UP;
     case SDLK_DOWN: return KEY_DOWN;
     case SDLK_LSHIFT: return KEY_LSHIFT;
+    case SDLK_SPACE: return KEY_SPACE;
   }
 
   return 0;
 }
 
-static void inputproc(Application* app) {
+static void inputProc(Application* app) {
   SDL_Event event;
   if (SDL_PollEvent(&event) != 0) {
     if (event.type == SDL_QUIT)
       app -> quit = true;
 
     else if (event.type == SDL_MOUSEBUTTONDOWN) {
-      switch (event.key.keysym.sym) {
+      switch (event.button.button) {
         case SDL_BUTTON_LEFT:
           keypress(KEY_MOUSE_LEFT);
           break;
@@ -98,7 +100,7 @@ static void inputproc(Application* app) {
     }
 
     else if (event.type == SDL_MOUSEBUTTONUP) {
-      switch (event.key.keysym.sym) {
+      switch (event.button.button) {
         case SDL_BUTTON_LEFT:
           keyrelease(KEY_MOUSE_LEFT);
           break;
@@ -114,14 +116,14 @@ static void inputproc(Application* app) {
     }
 
     else if (event.type == SDL_KEYDOWN) {
-      if (translate_key(event.key.keysym.sym)) {
-        on_keypress(translate_key(event.key.keysym.sym));
+      if (translateKey(event.key.keysym.sym)) {
+        onKeypress(translateKey(event.key.keysym.sym));
       }
     }
 
     else if (event.type == SDL_KEYUP) {
-      if (translate_key(event.key.keysym.sym)) {
-        on_keyrelease(translate_key(event.key.keysym.sym));
+      if (translateKey(event.key.keysym.sym)) {
+        onKeyrelease(translateKey(event.key.keysym.sym));
       }
     }
   }
