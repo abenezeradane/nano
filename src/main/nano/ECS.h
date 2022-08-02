@@ -2,106 +2,127 @@
 #define ECS_H
 
 #include "Atlas.h"
-#include "Utility.h"
+#include "Miscellaneous.h"
+
+#define NULL_ENTITY MAX_ENTITIES
 
 typedef struct ENTITYMANAGER {
-  Queue* available;
-  Entity livingcount;
+  Entity* living;
+  unsigned int count;
 } ENTITYMANAGER;
 
 typedef struct COMPONENTMANAGER {
-  Component** available;
-  unsigned short livingcount[MAX_ENTITIES];
+  unsigned int* count;
+  Component available[MAX_ENTITIES][MAX_COMPONENTS];
 } COMPONENTMANAGER;
 
 typedef struct ECS {
-  ENTITYMANAGER entities;
-  COMPONENTMANAGER components;
+  ENTITYMANAGER* entities;
+  COMPONENTMANAGER* components;
 } ECS;
 
-ENTITYMANAGER entitymanager(void) {
-  ENTITYMANAGER manager = {
-    .livingcount = 0,
-    .available = queue(MAX_ENTITIES)
-  };
-
-  empty(manager.available);
-  for (int itr = MAX_ENTITIES - 1; itr >= 0; itr--)
-    enqueue(manager.available, itr);
-
-  return manager;
+static ENTITYMANAGER* createEntityManager(void) {
+  ENTITYMANAGER* entities = (ENTITYMANAGER*) malloc(sizeof(ENTITYMANAGER));
+  entities -> living = (Entity*) calloc(MAX_ENTITIES, sizeof(Entity));
+  entities -> count = 0;
+  return entities;
 }
 
-Entity newentity(ECS* ecs) {
-  if (!(ecs && ((ecs -> entities).livingcount < MAX_ENTITIES)))
-    return -1;
-
-  Entity ID = front((ecs -> entities).available);
-	dequeue((ecs -> entities).available);
-	(ecs -> entities).livingcount++;
-
-  return ID;
-}
-
-COMPONENTMANAGER componentmanager(void) {
-  COMPONENTMANAGER manager = {
-    .available = (Component**) malloc(sizeof(Component*) * MAX_ENTITIES),
-    .livingcount = 0
-  };
-
-  for (int itr = 0; itr < MAX_ENTITIES; itr++)
-    (manager.available)[itr] = (Component*) malloc(sizeof(Component) * MAX_COMPONENTS);
-
-  return manager;
-}
-
-Component newcomponent(ComponentType type, void* data) {
-  Component component = {
-    .ID = type,
-  };
-
-  switch (type) {
-    case POSITION:
-      component.component = positioncomponent(data);
-      break;
-
-    case VELOCITY:
-      component.component = velocitycomponent();
-      break;
-
-    case SPRITE:
-      component.component = spritecomponent(data);
-      break;
-
-    case HEALTH:
-      component.component = (Health*) malloc(sizeof(Health));
-      break;
+static COMPONENTMANAGER* createComponentManager(void) {
+  COMPONENTMANAGER* components = (COMPONENTMANAGER*) malloc(sizeof(COMPONENTMANAGER));
+  for (Entity entity = 0; entity < MAX_ENTITIES; entity++) {
+    for (int Component = 0; Component < MAX_COMPONENTS; Component++)
+      (components -> available)[entity][Component] = NULL;
   }
 
-  return component;
+  components -> count = (int*) calloc(MAX_ENTITIES, sizeof(int));
+  return components;
 }
 
-Component* getcomponents(ECS* ecs, Entity entity) {
-  if (!(ecs && (ecs -> entities).livingcount < MAX_ENTITIES))
+ECS* createECS(void) {
+  ECS* ecs = (ECS*) malloc(sizeof(ECS));
+  ecs -> entities = createEntityManager();
+  ecs -> components = createComponentManager();
+  return ecs;
+}
+
+Entity createEntity(ECS* ecs) {
+  if (!(ecs && (ecs -> entities -> count < MAX_ENTITIES)))
+    return NULL_ENTITY;
+
+  for (Entity available = 0; available < MAX_ENTITIES; available++) {
+    if ((ecs -> entities -> living)[available] == 0) {
+      (ecs -> entities -> living)[available] = 1;
+    	(ecs -> entities -> count)++;
+      return available;
+    }
+  }
+
+  return NULL_ENTITY;
+}
+
+Boolean isLiving(ECS* ecs, Entity entity) {
+  if (!(ecs && (ecs -> entities -> count < MAX_ENTITIES)))
+    return -1;
+
+  if ((ecs -> entities -> living)[entity] == 1)
+    return true;
+  else
+    return false;
+}
+
+void destroyEntity(ECS* ecs, Entity entity) {
+  if (!(ecs && (ecs -> entities -> count < MAX_ENTITIES)))
+    return;
+
+	(ecs -> entities -> living)[entity] = 0;
+	(ecs -> entities -> count)--;
+}
+
+void createComponent(ECS* ecs, Entity entity, ComponentID type, void* data,...) {
+  if (!(ecs && (ecs -> components) && (type < MAX_COMPONENTS)))
+    return;
+
+  va_list additionalData;
+  va_start(additionalData, data);
+  switch (type) {
+    case CAMERA:
+      (ecs -> components -> available)[entity][type] = cameraComponent((float*) data);
+      break;
+
+    case GRAVITY:
+      (ecs -> components -> available)[entity][type] = gravityComponent((float*) data);
+      break;
+
+    case RIGIDBODY:
+      (ecs -> components -> available)[entity][type] = rigidbodyComponent((float*) data, (float*) va_arg(additionalData, void*));
+      break;
+
+    case TRANSFORM:
+      (ecs -> components -> available)[entity][type] = transformComponent((float*) data, (float*) va_arg(additionalData, void*), (float*) va_arg(additionalData, void*));
+      break;
+
+    case SHADER:
+      (ecs -> components -> available)[entity][type] = shaderComponent((char*) data, (char*) va_arg(additionalData, void*));
+      break;
+
+    case TEXTURE:
+      (ecs -> components -> available)[entity][type] = textureComponent((char*) data);
+      break;
+  }
+  va_end(additionalData);
+
+  if (!((ecs -> components -> available)[entity][type]))
+    return;
+
+  (ecs -> components -> count)[entity]++;
+}
+
+void* getComponent(ECS* ecs, Entity entity, ComponentID type) {
+  if (!(ecs && (ecs -> components) && (type < MAX_COMPONENTS)))
     return NULL;
 
-  return (ecs -> components).available[entity];
-}
-
-Component getcomponent(ECS* ecs, Entity entity, ComponentType type) {
-  if (!(ecs && (ecs -> entities).livingcount < MAX_ENTITIES))
-    return;
-
-  return (ecs -> components).available[entity][type];
-  return;
-}
-
-void assigncomponent(ECS* ecs, Component component, Entity entity) {
-  if (!(ecs && ((ecs -> components).livingcount[entity] < MAX_COMPONENTS)))
-    return;
-
-  (ecs -> components).available[entity][component.ID] = component;
-  (ecs -> components).livingcount[entity]++;
+  return (ecs -> components -> available)[entity][type];
 }
 
 #endif
