@@ -3,7 +3,6 @@
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "../utility/external/stb_image.h"
-// #include "../utility/Images.h"
 
 typedef struct Texture {
   unsigned int data;

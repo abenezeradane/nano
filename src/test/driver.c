@@ -1,33 +1,23 @@
 #include "nano/Input.h"
-#include "nano/Utility.h"
+#include "nano/Systems.h"
 #include "nano/Application.h"
+
+static void load(void);
+static void frame(void);
 
 static float now;
 static float last;
 static float delta;
 
-static void load(void);
-static void frame(void);
-
+Entity player;
 static Application app;
-static Renderer renderer;
-static ECS ecs;
 int WinMain(int argc, char const *argv[]) {
-  app.title = "Sacrifice";
-  app.fps = 30;
-  app.width = 512;
-  app.height = 256;
+  app.fps = 60;
+  app.width = 640;
+  app.height = 360;
   app.load = load;
   app.step = frame;
-  app.quit = false;
-
-  renderer.projection = morthographic(0.0f, app.width, app.height, 0.0f, 0.0f, 100.0f);
-  app.renderer = &renderer;
-
-  ecs.entities = entitymanager();
-  ecs.components = componentmanager();
-  app.ecs = &ecs;
-
+  app.title = "Sacrifice";
   start(&app);
 
   last = time();
@@ -39,8 +29,12 @@ int WinMain(int argc, char const *argv[]) {
 
     if (delta > (1000 / app.fps)) {
       last = now;
-      inputproc(&app);
+      inputProc(&app);
+
       frame();
+      clear(NULL);
+      renderSprites(app.ecs);
+      draw(&app);
     }
   }
 
@@ -50,33 +44,26 @@ int WinMain(int argc, char const *argv[]) {
 
 static void frame(void) {
   if (keypress(KEY_ESCAPE))
-    quit(&app);
+    app.quit = true;
 
-  {
-    if (keypress(KEY_W))
-      printf("W");
-    if (keypress(KEY_A))
-      printf("A");
-    if (keypress(KEY_S))
-      printf("S");
-    if (keypress(KEY_D))
-      printf("D");
-  }
+  if (keypress(KEY_W) || keypress(KEY_UP))
+    updatePlayerPosition(app.ecs, player, UP, 1.0f);
 
-  clear(0);
-  render(&app);
+  if (keypress(KEY_S) || keypress(KEY_DOWN))
+    updatePlayerPosition(app.ecs, player, DOWN, 1.0f);
+
+  if (keypress(KEY_A) || keypress(KEY_LEFT))
+    updatePlayerPosition(app.ecs, player, LEFT, 1.0f);
+
+  if (keypress(KEY_D) || keypress(KEY_RIGHT))
+    updatePlayerPosition(app.ecs, player, RIGHT, 1.0f);
 }
 
 static void load(void) {
-  Entity player = newentity(&ecs);
-  Component playerposition = newcomponent(POSITION, NULL);
-  SPRITEDATA* data = (SPRITEDATA*) malloc(sizeof(SPRITEDATA));
-  data -> vertexfile = "test.vert";
-  data -> fragmentfile = "test.frag";
-  data -> texturefile = "test.png";
-  data -> width = app.width;
-  data -> height = app.height;
-  Component playersprite = newcomponent(SPRITE, data);
-  assigncomponent(&ecs, playersprite, player);
-  free(data);
+  player = createEntity(app.ecs);
+  createComponent(app.ecs, player, GRAVITY, NULL);
+  createComponent(app.ecs, player, RIGIDBODY, NULL, NULL);
+  createComponent(app.ecs, player, TRANSFORM, NULL, NULL, NULL);
+  createComponent(app.ecs, player, SHADER, "assets/shaders/basic.vs", "assets/shaders/basic.fs");
+  createComponent(app.ecs, player, TEXTURE, "assets/textures/player.png");
 }
