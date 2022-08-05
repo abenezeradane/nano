@@ -69,6 +69,7 @@ void start(Application* app) {
   glEnable(GL_BLEND);
   glDisable(GL_LIGHTING);
   glDisable(GL_DEPTH_TEST);
+  SDL_GL_SetSwapInterval(app -> vsync);
   app -> ecs = createECS();
   if (app -> load)
     app -> load();

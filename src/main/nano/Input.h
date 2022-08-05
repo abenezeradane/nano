@@ -86,15 +86,15 @@ static void inputProc(Application* app) {
     else if (event.type == SDL_MOUSEBUTTONDOWN) {
       switch (event.button.button) {
         case SDL_BUTTON_LEFT:
-          keypress(KEY_MOUSE_LEFT);
+          onKeypress(KEY_MOUSE_LEFT);
           break;
 
         case SDL_BUTTON_MIDDLE:
-          keypress(KEY_MOUSE_MIDDLE);
+          onKeypress(KEY_MOUSE_MIDDLE);
           break;
 
         case SDL_BUTTON_RIGHT:
-          keypress(KEY_MOUSE_RIGHT);
+          onKeypress(KEY_MOUSE_RIGHT);
           break;
       }
     }
@@ -102,15 +102,15 @@ static void inputProc(Application* app) {
     else if (event.type == SDL_MOUSEBUTTONUP) {
       switch (event.button.button) {
         case SDL_BUTTON_LEFT:
-          keyrelease(KEY_MOUSE_LEFT);
+          onKeyrelease(KEY_MOUSE_LEFT);
           break;
 
         case SDL_BUTTON_MIDDLE:
-          keyrelease(KEY_MOUSE_MIDDLE);
+          onKeyrelease(KEY_MOUSE_MIDDLE);
           break;
 
         case SDL_BUTTON_RIGHT:
-          keyrelease(KEY_MOUSE_RIGHT);
+          onKeyrelease(KEY_MOUSE_RIGHT);
           break;
       }
     }

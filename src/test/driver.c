@@ -17,6 +17,7 @@ int WinMain(int argc, char const *argv[]) {
   app.height = 360;
   app.load = load;
   app.step = frame;
+  app.vsync = true;
   app.title = "Sacrifice";
   start(&app);
 
@@ -45,6 +46,9 @@ int WinMain(int argc, char const *argv[]) {
 static void frame(void) {
   if (keypress(KEY_ESCAPE))
     app.quit = true;
+
+  if (keypress(KEY_MOUSE_LEFT))
+    printf("%s\n", "LEFT MOUSE KEY");
 
   if (keypress(KEY_W) || keypress(KEY_UP))
     updatePlayerPosition(app.ecs, player, UP, 1.0f);
