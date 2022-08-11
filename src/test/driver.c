@@ -47,9 +47,6 @@ static void frame(void) {
   if (keypress(KEY_ESCAPE))
     app.quit = true;
 
-  if (keypress(KEY_MOUSE_LEFT))
-    printf("%s\n", "LEFT MOUSE KEY");
-
   if (keypress(KEY_W) || keypress(KEY_UP))
     updatePlayerPosition(app.ecs, player, UP, 1.0f);
 
