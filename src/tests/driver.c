@@ -19,7 +19,7 @@ int WinMain(int argc, char const *argv[]) {
 
 static void load(void) {
   // Create a 'Player' entity and add a basic shader to it
-  createEntity("Player", (int[2]) {3, 4}, (float[3]) {0.0f, 0.0f, 0.0f});
+  createEntity("Player", (int[2]) {4, 4}, (float[3]) {0.0f, 0.0f, 0.0f});
   createShader("Player", "data/shaders/basic.vert", "data/shaders/basic.frag");
 }
 
